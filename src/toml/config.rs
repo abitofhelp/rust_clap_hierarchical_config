@@ -4,7 +4,7 @@
 use serde_derive::Deserialize;
 use std::path::PathBuf;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Config {
     pub debug: Option<bool>,
     pub container: Container,

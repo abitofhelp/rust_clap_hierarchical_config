@@ -25,6 +25,7 @@ pub trait SubCommandTrait<'a> {
     ) -> anyhow::Result<Option<T>, Box<dyn std::error::Error>>;
 }
 
+#[derive(Clone, Debug)]
 pub(crate) struct SubCommand<'a> {
     name: &'a str,
     matches: &'a ArgMatches,

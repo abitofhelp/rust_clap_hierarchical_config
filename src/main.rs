@@ -1,22 +1,19 @@
 use std::path::PathBuf;
 
-use anyhow::{Result};
+use anyhow::Result;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
 use thiserror::Error;
-
-use toml_config_file::TomlConfigFile;
+use toml::config_file::ConfigFile;
 
 use crate::AppError::SubCommandNotPresent;
-//use crate::arg_values::{parse_config_field_kind, ArgKind, ArgValue};
-use crate::mytoml::Config;
-use crate::subcommand::{SubCommand, SubCommandTrait};
-use crate::toml_config_file::TomlConfigFileError;
+use crate::cli::subcommand::{SubCommand, SubCommandTrait};
+use toml::config::Config;
+use crate::toml::config_file::ConfigFileError;
 
-mod arg_values;
-mod mytoml;
-mod subcommand;
-mod toml_config_file;
+mod cli;
+mod hierarchical;
+mod toml;
 
 #[derive(Error, Debug)]
 pub enum AppError {
@@ -39,16 +36,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let subcommand = SubCommand::new(name, matches)?;
 
             // Build a mutable Config from the command line matches.  It will be updated
-            // when default values vs config file values are determined.
+            // when default values vs hierarchical file values are determined.
             let mut config = Config::new();
             config.debug = Some(true);
             config.container.name = subcommand.get_one_arg::<String>("name")?;
 
             // ONLY ARGMATCHES ARE SET HERE...
             // match _subcommand_name {
-            //     "container" =>  { config.container.clone().unwrap().name = subcommand_matches.get_one::<String>("name").cloned() }
-            //     "directory" => { config.directory.clone().unwrap().path = subcommand_matches.get_one::<PathBuf>("path").cloned() }
-            //     "hadoop" => { config.hadoop.clone().unwrap().path = subcommand_matches.get_one::<PathBuf>("path").cloned() }
+            //     "container" =>  { hierarchical.container.clone().unwrap().name = subcommand_matches.get_one::<String>("name").cloned() }
+            //     "directory" => { hierarchical.directory.clone().unwrap().path = subcommand_matches.get_one::<PathBuf>("path").cloned() }
+            //     "hadoop" => { hierarchical.hadoop.clone().unwrap().path = subcommand_matches.get_one::<PathBuf>("path").cloned() }
             //     &_ => { return  Err(Box::try_from(AppError::SubCommandNotPresent).unwrap()) }
             // }
 
@@ -65,13 +62,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // The path to the .toml configuration file CANNOT be set in the toml file, only on the
             // command line.
             let config_path = subcommand.get_one_arg::<PathBuf>("config_path")?.ok_or(
-                TomlConfigFileError::NotFound {
+                ConfigFileError::NotFound {
                     path: String::from("config_path"),
                 },
             )?;
             // Parse the .toml configuration file, so we can determine values for substitution in
             // the command line matches.
-            let config_file = TomlConfigFile::new(&config_path)?;
+            let config_file = ConfigFile::new(&config_path)?;
 
             // for id in default_ids.iter().copied() {
             //     let config_value = config_file.get_value_from_table(_subcommand_name, id)?;
@@ -84,8 +81,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // if config_value.clone().is_some_and(|x| x != *match_value) {
             //     // Use the config_value rather than the default that Clap supplied.
             //     // Directory:
-            //     config.container.clone().unwrap().name = config_value.clone();
-            //     println!("Setting id '{id}' to use config '{}' rather than Clap's default '{match_value}'", config_value.unwrap())
+            //     hierarchical.container.clone().unwrap().name = config_value.clone();
+            //     println!("Setting id '{id}' to use hierarchical '{}' rather than Clap's default '{match_value}'", config_value.unwrap())
             // } else {
             //     println!("Retaining id '{id}' use of Clap's default '{match_value}'")
             // }
@@ -119,16 +116,16 @@ pub struct App {
 #[derive(Debug, Args, Serialize)]
 struct GlobalOpts {
     /// config_path is the path to a configuration (.toml) file, which defaults to the current directory.
-    #[arg(short = 'c', long, global = true, default_value = "config.toml")]
+    #[arg(short = 'c', long, global = true, default_value = "hierarchical.toml")]
     config_path: std::path::PathBuf,
 }
 
 #[derive(
-Debug,
-Subcommand,
-Deserialize,
-Serialize,
-PartialEq, //, EnumString, strum_macros::Display,
+    Debug,
+    Subcommand,
+    Deserialize,
+    Serialize,
+    PartialEq, //, EnumString, strum_macros::Display,
 )]
 enum Command {
     #[command(about = "The hash container command determines the base64 binary MD5 hash for each blob in a container.", long_about = None)]
@@ -143,7 +140,7 @@ enum Command {
 
 /// The definition of the command line and its arguments
 #[derive(Parser, Debug, Deserialize, Serialize, PartialEq)]
-//#[config]
+//#[hierarchical]
 struct ContainerCommand {
     /// The name of a client
     #[arg(short = 'n', long, env("NAME"), default_value = "kdev")]
@@ -157,7 +154,7 @@ struct ContainerCommand {
 
 /// The definition of the command line and its arguments
 #[derive(Parser, Debug, Deserialize, Serialize, PartialEq)]
-//#[config]
+//#[hierarchical]
 struct DirectoryCommand {
     /// path is the path to the directory on the file system, which defaults to the current directory.
     #[arg(short = 'p', long, env("PATH"), default_value = ".")]
@@ -171,7 +168,7 @@ struct DirectoryCommand {
 
 /// The definition of the command line and its arguments
 #[derive(Parser, Debug, Deserialize, Serialize, PartialEq)]
-//#[config]
+//#[hierarchical]
 struct HadoopCommand {
     /// path is the path to the directory on the file system, which defaults to the current directory.
     #[arg(short = 'p', long, env("PATH"), default_value = ".")]

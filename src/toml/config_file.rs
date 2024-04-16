@@ -6,10 +6,10 @@ use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 use thiserror::Error;
-use crate::toml_config_file::TomlConfigFileError::FieldNotFound;
+use crate::toml::config_file::ConfigFileError::FieldNotFound;
 
 #[derive(Error, Debug)]
-pub enum TomlConfigFileError {
+pub enum ConfigFileError {
     #[error("the field '{field_name:?}' was not found in the toml configuration file table '{table_name:?}'")]
     FieldNotFound {
         table_name: Option<String>,
@@ -23,11 +23,12 @@ pub enum TomlConfigFileError {
     Unknown,
 }
 
-pub struct TomlConfigFile {
+#[derive(Clone, Debug)]
+pub struct ConfigFile {
     config_file_data: HashMap<String, toml::Value>,
 }
 
-impl TomlConfigFile {
+impl ConfigFile {
     pub fn new(config_file: &PathBuf) -> Result<Self, Box<dyn Error>> {
         let config_file_data = Self::parse_config_file_data(config_file)?;
         Ok(Self { config_file_data })
