@@ -1,0 +1,10 @@
+debug = false
+
+[container]
+name = "alm"
+
+[directory]
+path = "."
+
+[hadoop]
+path = "alm/"

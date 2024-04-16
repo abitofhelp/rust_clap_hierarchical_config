@@ -1,0 +1,15 @@
+[package]
+name = "rust_clap_hierarchical_config"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.81"
+clap = { version = "4.5.4", features = ["derive", "env"] }
+phf = { version = "0.11.2", features = ["macros"] }
+serde = "1.0.197"
+serde_derive = "1.0.197"
+strum = { version = "0.26.2", features = ["derive"] }
+strum_macros = "0.26.2"
+thiserror = "1.0.58"
+toml = "0.8.12"
