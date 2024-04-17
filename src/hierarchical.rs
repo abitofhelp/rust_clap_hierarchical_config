@@ -1,1 +1,1 @@
-mod hierarchical_config;
+pub mod hierarchical_config;

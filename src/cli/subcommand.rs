@@ -30,6 +30,13 @@ pub(crate) struct SubCommand<'a> {
     name: &'a str,
     matches: &'a ArgMatches,
 }
+
+impl<'a> SubCommand<'a> {
+    pub fn name(&self) -> &'a str {
+        self.name
+    }
+}
+
 impl<'a> SubCommandTrait<'a> for SubCommand<'a> {
     fn new(name: &'a str, matches: &'a ArgMatches) -> anyhow::Result<Self, Box<dyn Error>>
     where

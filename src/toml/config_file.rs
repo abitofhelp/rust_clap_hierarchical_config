@@ -29,8 +29,8 @@ pub struct ConfigFile {
 }
 
 impl ConfigFile {
-    pub fn new(config_file: &PathBuf) -> Result<Self, Box<dyn Error>> {
-        let config_file_data = Self::parse_config_file_data(config_file)?;
+    pub fn new(config_path: &PathBuf) -> Result<Self, Box<dyn Error>> {
+        let config_file_data = Self::parse_config_file_data(config_path)?;
         Ok(Self { config_file_data })
     }
 
@@ -62,6 +62,17 @@ impl ConfigFile {
             Some(v) => Ok(Some(v.to_string())),
         }
     }
+    // TODO: Try to get this to work with generics.  The issue is how to set the return type to T.
+    // pub(crate) fn get_value2<T: Any + Clone + Send + Sync + 'static>(&self, field_name: &str) -> Result<Option<String>, Box<dyn Error>> {
+    //     match self.config_file_data.get(field_name) {
+    //         None => Err(Box::try_from(FieldNotFound {
+    //             table_name: None,
+    //             field_name: field_name.to_string(),
+    //         })?),
+    //         Some(v) => Ok(Some(v.to_string())),
+    //     }
+    // }
+
 
     fn parse_config_file_data(
         config_path: &PathBuf,
