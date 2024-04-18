@@ -3,8 +3,29 @@
 
 use clap::parser::ValueSource;
 use clap::ArgMatches;
+use phf::phf_map;
 use std::any::Any;
 use std::error::Error;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum SubCommandKind {
+    /// Represents a container command in the cli application.
+    Container,
+    /// Represents a directory command in the cli application.
+    Directory,
+    /// Represents a hadoop command in the cli application.
+    Hadoop,
+}
+
+static SUBCOMMAND_KIND: phf::Map<&'static str, SubCommandKind> = phf_map! {
+    "container"      => SubCommandKind::Container,
+    "directory"      => SubCommandKind::Directory,
+    "hadoop"         => SubCommandKind::Hadoop,
+};
+
+pub fn parse_kind(kind: &str) -> Option<SubCommandKind> {
+    SUBCOMMAND_KIND.get(kind).cloned()
+}
 
 pub trait SubCommandTrait<'a> {
     fn new(
@@ -31,10 +52,29 @@ pub(crate) struct SubCommand<'a> {
     matches: &'a ArgMatches,
 }
 
+// &str to SubCommandEnum
+// SubCommandEnum to &str
+
 impl<'a> SubCommand<'a> {
     pub fn name(&self) -> &'a str {
         self.name
     }
+
+    // pub fn try_from<String> for Arg<bool> {
+    //     type Error = Box<dyn std::error::Error>;
+    //
+    //     fn try_from(original_value: String) -> Result<Self, Self::Error> {
+    //         let v: Arg<bool> = Arg {
+    //             //name: "".to_string(),
+    //             original_value: original_value.to_string(),
+    //             original_kind: ArgKind::String,
+    //             converted_kind: ArgKind::Bool,
+    //             converted_value: original_value.parse::<bool>()?,
+    //         };
+    //
+    //         Ok(v)
+    //     }
+    // }
 }
 
 impl<'a> SubCommandTrait<'a> for SubCommand<'a> {
@@ -73,7 +113,6 @@ impl<'a> SubCommandTrait<'a> for SubCommand<'a> {
         &self,
         id: &str,
     ) -> anyhow::Result<Option<T>, Box<dyn Error>> {
-        let v = self.matches.get_one::<T>(id).cloned();
-        Ok(v)
+        Ok(self.matches.try_get_one::<T>(id)?.cloned())
     }
 }

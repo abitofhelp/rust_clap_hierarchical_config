@@ -1,16 +1,24 @@
 use std::path::PathBuf;
+use ::toml::Value;
+use ::toml::Value::Boolean;
 
 use anyhow::Result;
-use clap::{Args, CommandFactory, Parser, Subcommand};
+use crate::hierarchical::config::{ Container, Directory, Hadoop };
+use clap::{ArgMatches, Args, CommandFactory, Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
 use thiserror::Error;
 use toml::config_file::ConfigFile;
 
 use crate::AppError::SubCommandNotPresent;
-use crate::cli::subcommand::{SubCommand, SubCommandTrait};
-use toml::config::Config;
+use crate::cli::subcommand::{parse_kind, SubCommand, SubCommandKind, SubCommandTrait};
+use hierarchical::config::Config;
 use crate::hierarchical::hierarchical_config::HierarchicalConfig;
 use crate::toml::config_file::ConfigFileError;
+use crate::cli::arg_values::{Arg, ArgKind};
+//use crate::cli::subcommand::SubCommandKind::{ Container, Directory, Hadoop };
+use hierarchical::config::ConfigBuilder;
+//use crate::Command::Directory;
+//use crate::toml::config::{ConfigBuilder, Container};
 
 mod cli;
 mod hierarchical;
@@ -27,6 +35,17 @@ pub enum AppError {
 
 /// This is the entry point for the application.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    // let debug: Value = "true".parse()?;
+    // let ccc = Arg {
+    //     original_value: debug.to_string(),
+    //     original_kind: ArgKind::String,
+    //     converted_kind: ArgKind::Bool,
+    //     converted_value: debug.try_into()?,
+    //};
+    //dbg!(ccc);
+
+
     match App::command().get_matches().subcommand() {
         None => Err(Box::try_from(SubCommandNotPresent)?),
         Some(sc) => {
@@ -36,8 +55,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let (name, matches) = sc;
 
             let mut hc = HierarchicalConfig::new(name, matches)?;
-            let config= hc.resolve()?;
-            dbg!(config);
+            let _config = hc.resolve()?;
+
 
             // let app = App::parse();
             // let cp = app.global_opts.config_path;

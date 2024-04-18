@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 use thiserror::Error;
+use toml::Value;
 use crate::toml::config_file::ConfigFileError::FieldNotFound;
 
 #[derive(Error, Debug)]
@@ -38,7 +39,7 @@ impl ConfigFile {
         &self,
         table_name: &str,
         field_name: &str,
-    ) -> Result<Option<String>, Box<dyn Error>> {
+    ) -> Result<Option<&Value>, Box<dyn Error>> {
         match self
             .config_file_data
             .get(table_name)
@@ -49,7 +50,7 @@ impl ConfigFile {
                 table_name: Some(table_name.to_string()),
                 field_name: field_name.to_string(),
             })?),
-            Some(v) => Ok(Some(v.to_string())),
+            Some(v) => Ok(Some(v)),
         }
     }
 
