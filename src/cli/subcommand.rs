@@ -59,22 +59,6 @@ impl<'a> SubCommand<'a> {
     pub fn name(&self) -> &'a str {
         self.name
     }
-
-    // pub fn try_from<String> for Arg<bool> {
-    //     type Error = Box<dyn std::error::Error>;
-    //
-    //     fn try_from(original_value: String) -> Result<Self, Self::Error> {
-    //         let v: Arg<bool> = Arg {
-    //             //name: "".to_string(),
-    //             original_value: original_value.to_string(),
-    //             original_kind: ArgKind::String,
-    //             converted_kind: ArgKind::Bool,
-    //             converted_value: original_value.parse::<bool>()?,
-    //         };
-    //
-    //         Ok(v)
-    //     }
-    // }
 }
 
 impl<'a> SubCommandTrait<'a> for SubCommand<'a> {
