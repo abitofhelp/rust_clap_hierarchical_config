@@ -10,7 +10,7 @@ use thiserror::Error;
 use toml::config_file::ConfigFile;
 
 use crate::AppError::SubCommandNotPresent;
-use crate::cli::subcommand::{parse_kind, SubCommand, SubCommandKind, SubCommandTrait};
+use crate::cli::subcommand::{SubCommand};
 use hierarchical::config::Config;
 use crate::hierarchical::hierarchical_config::HierarchicalConfig;
 use crate::toml::config_file::ConfigFileError;

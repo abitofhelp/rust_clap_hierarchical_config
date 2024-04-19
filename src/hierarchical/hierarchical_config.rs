@@ -1,12 +1,13 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 
-use crate::cli::subcommand::{parse_kind, SubCommand, SubCommandKind, SubCommandTrait};
+use crate::cli::subcommand::{SubCommand};
 use crate::hierarchical::config::{Config, ConfigBuilder, Container, Directory, Hadoop};
 use crate::toml::config_file::{ConfigFile};
 use clap::ArgMatches;
 use std::path::PathBuf;
 use std::str::FromStr;
+use crate::cli::subcommand_kind::{parse_kind, SubCommandKind};
 
 #[derive(Clone, Debug)]
 pub struct HierarchicalConfig {
