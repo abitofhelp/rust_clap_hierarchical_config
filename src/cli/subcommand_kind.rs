@@ -1,11 +1,7 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 
-use clap::parser::ValueSource;
-use clap::ArgMatches;
 use phf::phf_map;
-use std::any::Any;
-use std::error::Error;
 
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum SubCommandKind {
@@ -17,7 +13,7 @@ pub enum SubCommandKind {
     Hadoop,
 }
 
-pub(crate) static SUBCOMMAND_KIND: phf::Map<&'static str, SubCommandKind> = phf_map! {
+static SUBCOMMAND_KIND: phf::Map<&'static str, SubCommandKind> = phf_map! {
     "container"      => SubCommandKind::Container,
     "directory"      => SubCommandKind::Directory,
     "hadoop"         => SubCommandKind::Hadoop,

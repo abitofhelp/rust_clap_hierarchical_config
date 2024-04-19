@@ -1,22 +1,11 @@
-use std::path::PathBuf;
-use ::toml::Value;
-use ::toml::Value::Boolean;
-
-use anyhow::{Result, Context };
-use crate::hierarchical::config::{ Container, Directory, Hadoop };
-use clap::{ArgMatches, Args, CommandFactory, Parser, Subcommand};
+use anyhow::{Context, Result};
+use clap::{Args, CommandFactory, Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
 use thiserror::Error;
-use toml::config_file::ConfigFile;
 
 use crate::AppError::SubCommandNotPresent;
-use crate::cli::subcommand::{SubCommand};
-use hierarchical::config::Config;
 use crate::hierarchical::hierarchical_config::HierarchicalConfig;
-use crate::toml::config_file::ConfigFileError;
 
-//use crate::cli::subcommand::SubCommandKind::{ Container, Directory, Hadoop };
-use hierarchical::config::ConfigBuilder;
 //use crate::Command::Directory;
 //use crate::toml::config::{ConfigBuilder, Container};
 
@@ -35,7 +24,6 @@ pub enum AppError {
 
 /// This is the entry point for the application.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     match App::command().get_matches().subcommand() {
         None => Err(Box::try_from(SubCommandNotPresent)?),
         Some(sc) => {
@@ -74,11 +62,11 @@ struct GlobalOpts {
 }
 
 #[derive(
-    Debug,
-    Subcommand,
-    Deserialize,
-    Serialize,
-    PartialEq, //, EnumString, strum_macros::Display,
+Debug,
+Subcommand,
+Deserialize,
+Serialize,
+PartialEq, //, EnumString, strum_macros::Display,
 )]
 enum Command {
     #[command(about = "The hash container command determines the base64 binary MD5 hash for each blob in a container.", long_about = None)]

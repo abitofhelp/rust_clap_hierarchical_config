@@ -1,9 +1,10 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 
-use serde_derive::Deserialize;
 use std::path::PathBuf;
+
 use derive_builder::Builder;
+use serde_derive::Deserialize;
 
 #[derive(Builder, Clone, Debug, Default, Deserialize)]
 #[builder(setter(into))]

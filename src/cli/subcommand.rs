@@ -1,11 +1,11 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 
-use clap::parser::ValueSource;
-use clap::ArgMatches;
-use phf::phf_map;
 use std::any::Any;
 use std::error::Error;
+
+use clap::ArgMatches;
+use clap::parser::ValueSource;
 
 #[derive(Clone, Debug)]
 pub(crate) struct SubCommand<'a> {
@@ -14,17 +14,16 @@ pub(crate) struct SubCommand<'a> {
 }
 
 impl<'a> SubCommand<'a> {
-    pub fn name(&self) -> &'a str {
-        self.name
-    }
-}
-
-impl<'a> SubCommand<'a> {
-    fn new(name: &'a str, matches: &'a ArgMatches) -> anyhow::Result<Self, Box<dyn Error>>
-    where
-        Self: Sized,
+    pub(crate) fn new(name: &'a str, matches: &'a ArgMatches) -> anyhow::Result<Self, Box<dyn Error>>
+        where
+            Self: Sized,
     {
         Ok(SubCommand { name, matches })
+    }
+
+
+    pub(crate) fn name(&self) -> &'a str {
+        self.name
     }
 
     pub(crate) fn try_get_default_value_matches(
