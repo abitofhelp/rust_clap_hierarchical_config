@@ -36,16 +36,6 @@ pub enum AppError {
 /// This is the entry point for the application.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    // let debug: Value = "true".parse()?;
-    // let ccc = Arg {
-    //     original_value: debug.to_string(),
-    //     original_kind: ArgKind::String,
-    //     converted_kind: ArgKind::Bool,
-    //     converted_value: debug.try_into()?,
-    //};
-    //dbg!(ccc);
-
-
     match App::command().get_matches().subcommand() {
         None => Err(Box::try_from(SubCommandNotPresent)?),
         Some(sc) => {
