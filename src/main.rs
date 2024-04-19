@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use ::toml::Value;
 use ::toml::Value::Boolean;
 
-use anyhow::Result;
+use anyhow::{Result, Context };
 use crate::hierarchical::config::{ Container, Directory, Hadoop };
 use clap::{ArgMatches, Args, CommandFactory, Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
@@ -53,9 +53,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Clap will provide the arguments in priority order (highest to lowest):
             // command line argument, environment variable, or default value.
             let (name, matches) = sc;
-
-            let mut hc = HierarchicalConfig::new(name, matches)?;
-            let _config = hc.resolve()?;
+            let hc = HierarchicalConfig::new(name, matches)?;
+            dbg!(hc.config());
 
 
             // let app = App::parse();

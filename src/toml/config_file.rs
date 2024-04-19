@@ -35,16 +35,14 @@ impl ConfigFile {
         Ok(Self { config_file_data })
     }
 
-    pub(crate) fn get_value_from_table(
+    pub(crate) fn try_get_value_from_table(
         &self,
         table_name: &str,
         field_name: &str,
     ) -> Result<Option<&Value>, Box<dyn Error>> {
         match self
             .config_file_data
-            .get(table_name)
-            .unwrap()
-            .get(field_name)
+            .get(table_name).and_then(|x| x.get(field_name))
         {
             None => Err(Box::try_from(FieldNotFound {
                 table_name: Some(table_name.to_string()),
@@ -54,7 +52,7 @@ impl ConfigFile {
         }
     }
 
-    pub(crate) fn get_value(&self, field_name: &str) -> Result<Option<String>, Box<dyn Error>> {
+    pub(crate) fn try_get_value(&self, field_name: &str) -> Result<Option<String>, Box<dyn Error>> {
         match self.config_file_data.get(field_name) {
             None => Err(Box::try_from(FieldNotFound {
                 table_name: None,
