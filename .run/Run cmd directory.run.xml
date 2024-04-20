@@ -1,10 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run directory" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --package rust_clap_hierarchical_config --bin rust_clap_hierarchical_config -- directory  -p /abc/def " />
+  <configuration default="false" name="Run cmd directory" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="run --package cmd --bin cmd -- directory -c $PROJECT_DIR$/config.toml" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-    <envs>
-      <env name="RUST_LIB_BACKTRACE" value="1" />
-    </envs>
+    <envs />
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
     <option name="requiredFeatures" value="true" />

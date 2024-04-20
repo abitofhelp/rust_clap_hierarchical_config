@@ -6,19 +6,39 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::ArgMatches;
-use toml::Value;
+use toml::value::Value;
+use derive_builder::Builder;
+use serde_derive::Deserialize;
+use hctoml::config_file::ConfigFile;
 
-use crate::cli::subcommand::SubCommand;
-use crate::cli::subcommand_kind::{parse_kind, SubCommandKind};
-use crate::hierarchical::config::{Config, ConfigBuilder, Container, Directory, Hadoop};
-use crate::toml::config_file::ConfigFile;
-
-#[derive(Clone, Debug)]
-pub struct HierarchicalConfig {
-    config: Config,
+#[derive(Builder, Clone, Debug, Default, Deserialize)]
+#[builder(setter(into))]
+pub struct Config {
+    pub debug: Option<bool>,
+    pub container: Option<Container>,
+    pub directory: Option<Directory>,
+    pub hadoop: Option<Hadoop>,
 }
 
-impl<'a> HierarchicalConfig {
+#[derive(Builder, Clone, Debug, Default, Deserialize)]
+#[builder(setter(into))]
+pub struct Container {
+    pub name: Option<String>,
+}
+
+#[derive(Builder, Clone, Debug, Default, Deserialize)]
+#[builder(setter(into))]
+pub struct Directory {
+    pub path: Option<PathBuf>,
+}
+
+#[derive(Builder, Clone, Debug, Default, Deserialize)]
+#[builder(setter(into))]
+pub struct Hadoop {
+    pub path: Option<PathBuf>,
+}
+
+impl<'a> Config {
     pub(crate) fn new(
         name: &'a str,
         matches: &'a ArgMatches,
@@ -29,18 +49,18 @@ impl<'a> HierarchicalConfig {
         let subcommand = SubCommand::new(name, matches)?;
 
         // We want to have hierarchical argument values with the following priorities (highest to lowest):
-        // cli > envvar > toml file > defaults.
+        // cli > envvar > hctoml file > defaults.
         // So, we need to determine the matches have default values.  If we have a value in the
         // config file, we will use it.  Otherwise, the default value is retained.
         let default_ids = subcommand.try_get_default_value_matches(vec!["config_path"])?;
 
-        // Get the path to the .toml configuration file, which may not exist.
-        // The path to the .toml configuration file CANNOT be set in the toml file, only on the
+        // Get the path to the .hctoml configuration file, which may not exist.
+        // The path to the .hctoml configuration file CANNOT be set in the hctoml file, only on the
         // command line.
         let config_file = Self::parse_config_file(&subcommand)?;
 
-        // Initialize configuration values that are not in toml tables; Hence, used for
-        // any kind of subcommand.  Most likely, these values will exist in the toml
+        // Initialize configuration values that are not in hctoml tables; Hence, used for
+        // any kind of subcommand.  Most likely, these values will exist in the hctoml
         // config file, but not on the command line (i.e. debug in this example app).
         let debug = config_file
             .try_get_value("debug")?
@@ -56,7 +76,7 @@ impl<'a> HierarchicalConfig {
             debug,
         )?;
 
-        Ok(HierarchicalConfig { config })
+        Ok(Config { config })
     }
 
     fn build_config(
@@ -106,14 +126,14 @@ impl<'a> HierarchicalConfig {
     }
 
     fn parse_config_file(subcommand: &SubCommand) -> Result<ConfigFile, Box<dyn Error>> {
-        // Get the path to the .toml configuration file, which may not exist.
-        // The path to the .toml configuration file CANNOT be set in the toml file, only on the
+        // Get the path to the .hctoml configuration file, which may not exist.
+        // The path to the .hctoml configuration file CANNOT be set in the hctoml file, only on the
         // command line.
         let config_path = subcommand
             .try_get_one_arg::<PathBuf>("config_path")?
             .unwrap();
 
-        // Parse the .toml configuration file, so we can determine values for substitution in
+        // Parse the .hctoml configuration file, so we can determine values for substitution in
         // the command line matches.
         let config_file = ConfigFile::new(&config_path)?;
 
@@ -160,7 +180,7 @@ impl<'a> HierarchicalConfig {
         let mut config = Container::default();
 
         // Update any values that Clap used from default sources,
-        // if the argument exists in the toml config file.
+        // if the argument exists in the hctoml config file.
         // Load the matches into the Config instance.
 
         config.name =
@@ -177,7 +197,7 @@ impl<'a> HierarchicalConfig {
         subcommand: &SubCommand,
     ) -> Result<Option<Value>, Box<dyn Error>> {
         if default_values.contains(&id.to_string()) {
-            // Fetch the value of the field/id from the toml configuration data.
+            // Fetch the value of the field/id from the hctoml configuration data.
             let config_value = config_file
                 .try_get_value_from_table(subcommand.name(), id)?
                 .cloned();

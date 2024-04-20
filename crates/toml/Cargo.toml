@@ -1,0 +1,20 @@
+[package]
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license-file.workspace = true
+name = "toml"
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version = "1.0.0"
+
+[lib]
+name = "toml"
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "1.0.58"
+toml = "0.8.12"

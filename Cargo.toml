@@ -1,15 +1,36 @@
-[package]
-name = "rust_clap_hierarchical_config"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = [
+    "crates/cmd",
+    "crates/subcommand",
+    "crates/toml",
+]
 
-[dependencies]
-anyhow = "1.0.81"
-clap = { version = "4.5.4", features = ["derive", "env"] }
-derive_builder = "0.20.0"
-phf = { version = "0.11.2", features = ["macros"] }
-serde = "1.0.197"
-serde_derive = "1.0.197"
-#strum = { version = "0.26.2", features = ["derive"] }
-thiserror = "1.0.58"
-toml = "0.8.12"
+[workspace.package]
+authors = ["Michael Gardner <mjgardner@abitofhelp.com>"]
+description = "This is an example application using the latest versions of ..."
+edition = "2021"
+homepage = "https://www.abitofhelp.com"
+keywords = ["rust", "toml"]
+license-file = "LICENSE"
+readme = "README.md"
+repository = "https://github.com/abitofhelp/apis-rust.git"
+rust-version = "1.76"
+
+
+
+#[package]
+#name = "rust_clap_hierarchical_config"
+#version = "0.1.0"
+#edition = "2021"
+#
+#[dependencies]
+#anyhow = "1.0.81"
+#clap = { version = "4.5.4", features = ["derive", "env"] }
+#derive_builder = "0.20.0"
+#phf = { version = "0.11.2", features = ["macros"] }
+#serde = "1.0.197"
+#serde_derive = "1.0.197"
+##strum = { version = "0.26.2", features = ["derive"] }
+#thiserror = "1.0.58"
+#hctoml = "0.8.12"

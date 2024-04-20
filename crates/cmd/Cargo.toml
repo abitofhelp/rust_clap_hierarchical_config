@@ -1,0 +1,28 @@
+[package]
+name = "cmd"
+version = "1.0.0"
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license-file.workspace = true
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+bench = false
+name = "cmd"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.81"
+clap = { version = "4.5.4", features = ["derive", "env"] }
+derive_builder = "0.20.0"
+serde = "1.0.197"
+serde_derive = "1.0.197"
+subcommand = { version = "1.0.0", path = "../subcommand" }
+hctoml = { version = "1.0.0", path = "../toml", package = "toml" }
+toml = { version = "0.8.12" }
+thiserror = "1.0.58"
