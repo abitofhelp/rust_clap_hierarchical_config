@@ -1,10 +1,12 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 
+use std::error::Error;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::ArgMatches;
+use toml::Value;
 
 use crate::cli::subcommand::SubCommand;
 use crate::cli::subcommand_kind::{parse_kind, SubCommandKind};
@@ -20,12 +22,11 @@ impl<'a> HierarchicalConfig {
     pub(crate) fn new(
         name: &'a str,
         matches: &'a ArgMatches,
-    ) -> anyhow::Result<Self, Box<dyn std::error::Error>>
+    ) -> Result<Self, Box<dyn std::error::Error>>
     where
         Self: Sized,
     {
         let subcommand = SubCommand::new(name, matches)?;
-        let subcommand_kind = parse_kind(subcommand.name()).unwrap();
 
         // We want to have hierarchical argument values with the following priorities (highest to lowest):
         // cli > envvar > toml file > defaults.
@@ -33,6 +34,78 @@ impl<'a> HierarchicalConfig {
         // config file, we will use it.  Otherwise, the default value is retained.
         let default_ids = subcommand.try_get_default_value_matches(vec!["config_path"])?;
 
+        // Get the path to the .toml configuration file, which may not exist.
+        // The path to the .toml configuration file CANNOT be set in the toml file, only on the
+        // command line.
+        let config_file = Self::parse_config_file(&subcommand)?;
+
+        // Initialize configuration values that are not in toml tables; Hence, used for
+        // any kind of subcommand.  Most likely, these values will exist in the toml
+        // config file, but not on the command line (i.e. debug in this example app).
+        let debug = config_file
+            .try_get_value("debug")?
+            .map(|x| bool::from_str(x.as_str()))
+            .transpose()?;
+
+        // Build a mutable Config from the command line matches.  It will be updated
+        // when default values vs hierarchical file values are determined.
+        let config = Self::build_config(
+            &subcommand,
+            &default_ids,
+            &config_file,
+            debug,
+        )?;
+
+        Ok(HierarchicalConfig { config })
+    }
+
+    fn build_config(
+        subcommand: &SubCommand,
+        default_ids: &Vec<String>,
+        config_file: &ConfigFile,
+        debug: Option<bool>,
+    ) -> Result<Config, Box<dyn Error>> {
+        // Build a mutable Config from the command line matches.  It will be updated
+        // when default values vs hierarchical file values are determined.
+
+        let subcommand_kind = parse_kind(subcommand.name()).unwrap();
+
+        let config = match subcommand_kind {
+            SubCommandKind::Container => ConfigBuilder::default()
+                .debug(debug)
+                .container(Self::build_container_config(
+                    &subcommand,
+                    &default_ids,
+                    &config_file,
+                )?)
+                .directory(None)
+                .hadoop(None)
+                .build()?,
+            SubCommandKind::Directory => ConfigBuilder::default()
+                .debug(debug)
+                .container(None)
+                .directory(Self::build_directory_config(
+                    &subcommand,
+                    &default_ids,
+                    &config_file,
+                )?)
+                .hadoop(None)
+                .build()?,
+            SubCommandKind::Hadoop => ConfigBuilder::default()
+                .debug(debug)
+                .container(None)
+                .directory(None)
+                .hadoop(Self::build_hadoop_config(
+                    &subcommand,
+                    &default_ids,
+                    &config_file,
+                )?)
+                .build()?,
+        };
+        Ok(config)
+    }
+
+    fn parse_config_file(subcommand: &SubCommand) -> Result<ConfigFile, Box<dyn Error>> {
         // Get the path to the .toml configuration file, which may not exist.
         // The path to the .toml configuration file CANNOT be set in the toml file, only on the
         // command line.
@@ -44,93 +117,85 @@ impl<'a> HierarchicalConfig {
         // the command line matches.
         let config_file = ConfigFile::new(&config_path)?;
 
-        // Initialize configuration values that are not in toml tables; Hence, used for
-        // any kind of subcommand.  Most likely, these values will exist in the toml
-        // config file, but not on the command line (i.e. debug in this example app).
-        let debug = config_file
-            .try_get_value("debug")?
-            .map(|x| bool::from_str(x.as_str()))
-            .transpose()?;
-
-        // TODO:
-        //for id in default_ids.iter().map(|x| x.as_str()) {}
-
-        // Build a mutable Config from the command line matches.  It will be updated
-        // when default values vs hierarchical file values are determined.
-        let config = match subcommand_kind {
-            SubCommandKind::Container => {
-                // Initialize an empty config instance.
-                let mut config = Container::default();
-
-                // Load the matches into the Config instance.
-                config.name = subcommand.try_get_one_arg::<String>("name")?;
-
-                ConfigBuilder::default()
-                    .debug(debug)
-                    .container(config)
-                    .directory(None)
-                    .hadoop(None)
-                    .build()?
-            }
-            SubCommandKind::Directory => {
-                // Initialize an empty config instance.
-                let mut config = Directory::default();
-
-                // Load the matches into the Config instance.
-                config.path = subcommand.try_get_one_arg::<PathBuf>("path")?;
-
-                ConfigBuilder::default()
-                    .debug(debug)
-                    .container(None)
-                    .directory(config)
-                    .hadoop(None)
-                    .build()?
-            }
-            SubCommandKind::Hadoop => {
-                // Initialize an empty config instance.
-                let mut config = Hadoop::default();
-
-                // Load the matches into the Config instance.
-                config.path = subcommand.try_get_one_arg::<PathBuf>("path")?;
-
-                ConfigBuilder::default()
-                    .debug(debug)
-                    .container(None)
-                    .directory(None)
-                    .hadoop(config)
-                    .build()?
-            }
-        };
-
-
-
-        Ok(HierarchicalConfig { config })
+        Ok(config_file)
     }
 
-    // fn resolve_arg_value<T>(
-    //     &self,
-    //     name: &str,
-    //     subcommand: &SubCommand,
-    //     config_file: &ConfigFile,
-    //     default_ids: &Vec<String>) -> Result<T, Box<dyn std::error::Error>> {
-    //
-    //     for id in default_ids.iter().map(|x| x.as_str()) {
-    //         // Fetch the value of the field/id from the toml configuration data.
-    //         let config_value = config_file
-    //             .try_get_value_from_table(subcommand.name(), id)?
-    //             .map(|x| x.to_string());
-    //
-    //         // Fetch the value of the field/id from the subcommand's matches.
-    //         let match_value = subcommand.try_get_one_arg::<String>(id)?;
-    //
-    //         // Determine whether to update the field in the Config object.
-    //         if config_value != match_value {
-    //             return Ok(config_value);
-    //         } else {
-    //             return Ok(match_value);
-    //         }
-    //     }
-    // }
+    fn build_hadoop_config(
+        subcommand: &SubCommand,
+        default_ids: &Vec<String>,
+        config_file: &ConfigFile,
+    ) -> Result<Hadoop, Box<dyn Error>> {
+        // Initialize an empty config instance.
+        let mut config = Hadoop::default();
+
+        // Load the matches into the Config instance.
+        config.path =
+            Self::resolve_arg_value::<PathBuf>("path", &default_ids, &config_file, &subcommand)?
+                .map(|x| PathBuf::from(x.to_string()));
+        Ok(config)
+    }
+
+    fn build_directory_config(
+        subcommand: &SubCommand,
+        default_ids: &Vec<String>,
+        config_file: &ConfigFile,
+    ) -> Result<Directory, Box<dyn Error>> {
+        // Initialize an empty config instance.
+        let mut config = Directory::default();
+
+        // Load the matches into the Config instance.
+        config.path =
+            Self::resolve_arg_value::<PathBuf>("path", &default_ids, &config_file, &subcommand)?
+                .map(|x| PathBuf::from(x.to_string()));
+
+        Ok(config)
+    }
+
+    fn build_container_config(
+        subcommand: &SubCommand,
+        default_ids: &Vec<String>,
+        config_file: &ConfigFile,
+    ) -> Result<Container, Box<dyn Error>> {
+        // Initialize an empty config instance.
+        let mut config = Container::default();
+
+        // Update any values that Clap used from default sources,
+        // if the argument exists in the toml config file.
+        // Load the matches into the Config instance.
+
+        config.name =
+            Self::resolve_arg_value::<String>("name", &default_ids, &config_file, &subcommand)?
+                .map(|x| x.to_string());
+
+        Ok(config)
+    }
+
+    fn resolve_arg_value<T: Clone + Send + Sync + 'static + serde::Serialize>(
+        id: &str,
+        default_values: &Vec<String>,
+        config_file: &ConfigFile,
+        subcommand: &SubCommand,
+    ) -> Result<Option<Value>, Box<dyn Error>> {
+        if default_values.contains(&id.to_string()) {
+            // Fetch the value of the field/id from the toml configuration data.
+            let config_value = config_file
+                .try_get_value_from_table(subcommand.name(), id)?
+                .cloned();
+
+            // Fetch the value of the field/id from the subcommand's matches.
+            let match_value = subcommand.try_get_one_arg::<T>(id)?;
+            let mv = Some(Value::try_from(match_value)?);
+
+            // Determine whether to use the value from the config file or retain the default value.
+            let value = if config_value != mv { config_value } else { mv };
+            Ok(value)
+        } else {
+            // Use the value that Clap determined because its source is higher priority
+            // than a config file or default value.
+            let default_value = subcommand.try_get_one_arg::<T>(id)?;
+            Ok(Some(Value::try_from(default_value)?))
+        }
+    }
 
     pub fn config(&self) -> &Config {
         &self.config

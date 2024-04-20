@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Result};
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
 use thiserror::Error;
@@ -84,7 +84,7 @@ enum Command {
 //#[hierarchical]
 struct ContainerCommand {
     /// The name of a client
-    #[arg(short = 'n', long, env("NAME"), default_value = "kdev")]
+    #[arg(short = 'n', long, env("HCCC_NAME"), default_value = "kdev")]
     name: Option<String>,
     // /// The connection timeout
     // #[arg(short = 'd', long, value_parser = humantime::parse_duration)]
@@ -98,7 +98,7 @@ struct ContainerCommand {
 //#[hierarchical]
 struct DirectoryCommand {
     /// path is the path to the directory on the file system, which defaults to the current directory.
-    #[arg(short = 'p', long, env("PATH"), default_value = ".")]
+    #[arg(short = 'p', long, env("HCDC_PATH"), default_value = ".")]
     path: Option<std::path::PathBuf>,
     // /// The connection timeout
     // #[arg(short = 'd', long, value_parser = humantime::parse_duration)]
@@ -112,7 +112,7 @@ struct DirectoryCommand {
 //#[hierarchical]
 struct HadoopCommand {
     /// path is the path to the directory on the file system, which defaults to the current directory.
-    #[arg(short = 'p', long, env("PATH"), default_value = ".")]
+    #[arg(short = 'p', long, env("HCHC_PATH"), default_value = ".")]
     path: Option<std::path::PathBuf>,
     // /// The connection timeout
     // #[arg(short = 'd', long, value_parser = humantime::parse_duration)]
