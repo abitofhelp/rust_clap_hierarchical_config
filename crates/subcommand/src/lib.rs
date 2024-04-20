@@ -1,13 +1,13 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 
-pub mod kind;
-
 use std::any::Any;
 use std::error::Error;
 
 use clap::ArgMatches;
 use clap::parser::ValueSource;
+
+pub mod kind;
 
 #[derive(Clone, Debug)]
 pub struct SubCommand<'a> {
@@ -62,12 +62,12 @@ impl<'a> SubCommand<'a> {
 }
 
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        assert_eq!(true, true);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[test]
+//     fn it_works() {
+//         assert_eq!(true, true);
+//     }
+// }

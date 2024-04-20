@@ -1,11 +1,12 @@
-mod error;
-mod config;
-
-use anyhow::{Result};
+use anyhow::Result;
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use serde_derive::{Deserialize, Serialize};
+
 use crate::config::Config;
 use crate::error::AppError;
+
+mod error;
+mod config;
 
 /// This is the entry point for the application.
 fn main() -> Result<(), Box<dyn std::error::Error>> {

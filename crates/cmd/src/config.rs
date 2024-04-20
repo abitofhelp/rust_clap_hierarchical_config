@@ -1,19 +1,19 @@
-
-// #![deny(warnings)]
-// #![allow(dead_code)]
-use hctoml::ConfigFile;
-use subcommand::{ SubCommand };
-use subcommand::kind::Kind;
-use subcommand::kind::parse_kind;
-
 use std::error::Error;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::ArgMatches;
-use toml::value::Value;
 use derive_builder::Builder;
 use serde_derive::Deserialize;
+use toml::value::Value;
+
+// #![deny(warnings)]
+// #![allow(dead_code)]
+use hctoml::ConfigFile;
+use subcommand::kind::Kind;
+use subcommand::kind::parse_kind;
+use subcommand::SubCommand;
+
 //use serde_derive::Deserialize;
 //use toml::config_file::ConfigFile;
 
@@ -48,7 +48,7 @@ impl<'a> Config {
     pub(crate) fn new(
         name: &'a str,
         matches: &'a ArgMatches,
-    ) -> anyhow::Result<Self, Box<dyn std::error::Error>>
+    ) -> anyhow::Result<Self, Box<dyn Error>>
         where
             Self: Sized,
     {
@@ -223,7 +223,6 @@ impl<'a> Config {
         }
     }
 }
-
 
 
 // #![deny(warnings)]
