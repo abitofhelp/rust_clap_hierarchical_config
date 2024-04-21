@@ -16,9 +16,9 @@ name = "subcommand"
 path = "src/lib.rs"
 
 [dependencies]
-thiserror = "1.0.58"
 clap = { version = "4.5.4", features = ["derive"] }
-phf = { version = "0.11.2", features = ["macros"] }
+strum = { version = "0.26.2", features = ["derive"] }
+thiserror = "1.0.59"
 
 
 

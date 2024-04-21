@@ -6,26 +6,27 @@ use std::error::Error;
 
 use clap::ArgMatches;
 use clap::parser::ValueSource;
+use crate::kind::Kind;
 
 pub mod kind;
 
 #[derive(Clone, Debug)]
-pub struct SubCommand<'a> {
-    name: &'a str,
-    matches: &'a ArgMatches,
+pub struct SubCommand {
+    pub kind: Kind,
+    matches: ArgMatches,
 }
 
-impl<'a> SubCommand<'a> {
-    pub fn new(name: &'a str, matches: &'a ArgMatches) -> Result<Self, Box<dyn Error>>
+impl<'a> SubCommand {
+    pub fn new(kind: Kind, matches: ArgMatches) -> Result<Self, Box<dyn Error>>
         where
             Self: Sized,
     {
-        Ok(SubCommand { name, matches })
+        Ok(SubCommand { kind, matches })
     }
 
 
-    pub fn name(&self) -> &'a str {
-        self.name
+    pub fn kind(&self) -> Kind {
+        self.kind
     }
 
     pub fn try_get_default_value_matches(
