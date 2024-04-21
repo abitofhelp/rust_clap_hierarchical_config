@@ -3,7 +3,8 @@
 
 use strum::{Display, EnumString};
 
-#[derive(Clone, Debug, Display, EnumString, PartialEq, Copy)]
+#[derive(Clone, Debug, Display, EnumString, Eq, PartialEq, Copy)]
+#[non_exhaustive]
 pub enum Kind {
     /// Represents a container command in the cli application.
     #[strum(serialize = "container")]

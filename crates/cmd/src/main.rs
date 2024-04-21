@@ -1,8 +1,7 @@
-use crate::clap::app::App;
 use anyhow::Result;
 
+use crate::clap::app::App;
 use crate::config::Config;
-use crate::error::AppError;
 
 mod clap;
 mod config;

@@ -6,45 +6,48 @@ use std::error::Error;
 
 use clap::ArgMatches;
 use clap::parser::ValueSource;
+
 use crate::kind::Kind;
 
 pub mod kind;
+pub mod error;
 
 #[derive(Clone, Debug)]
 pub struct SubCommand {
-    pub kind: Kind,
+    kind: Kind,
     matches: ArgMatches,
 }
 
-impl<'a> SubCommand {
+impl SubCommand {
+    #[inline]
     pub fn new(kind: Kind, matches: ArgMatches) -> Result<Self, Box<dyn Error>>
         where
             Self: Sized,
     {
-        Ok(SubCommand { kind, matches })
+        Ok(Self { kind, matches })
     }
 
-
-    pub fn kind(&self) -> Kind {
+    #[inline]
+    pub const fn kind(&self) -> Kind {
         self.kind
     }
 
+    #[inline]
     pub fn try_get_default_value_matches(
         &self,
-        exclude: Vec<&str>,
+        exclude: &[&str], //Vec<&str>,
     ) -> Result<Vec<String>, Box<dyn Error>> {
         // Scan the matches looking for any that are from the 'default' source.
         // Our goal is to have a hierarchical determination of configuration settings
         // in priority order (highest to lowest):
-        // command line argument, environment variable, hctoml file, or default value.
+        // command line argument, environment variable, toml file, or default value.
         // So, we need to determine arguments that have default values and determine whether
-        // they need to be set with values from the hctoml file, which has a higher priority than
+        // they need to be set with values from the toml file, which has a higher priority than
         // default values.
         let default_ids = self
             .matches
             .ids()
-            .cloned()
-            .filter(|id| {
+            .filter(|&id| {
                 self.matches.value_source(id.as_ref()).unwrap() == ValueSource::DefaultValue
             })
             .filter(|id| !exclude.contains(&id.as_str()))
@@ -54,6 +57,7 @@ impl<'a> SubCommand {
         Ok(default_ids)
     }
 
+    #[inline]
     pub fn try_get_one_arg<T: Any + Clone + Send + Sync + 'static>(
         &self,
         id: &str,
@@ -61,7 +65,6 @@ impl<'a> SubCommand {
         Ok(self.matches.try_get_one::<T>(id)?.cloned())
     }
 }
-
 
 // #[cfg(test)]
 // mod tests {

@@ -1,9 +1,12 @@
-use crate::error::AppError;
-use clap::{ArgMatches, Args, CommandFactory, Parser, Subcommand};
-use serde_derive::{Deserialize, Serialize};
 use std::error::Error;
 use std::str::FromStr;
-use subcommand::kind::{Kind};
+
+use clap::{ArgMatches, Args, CommandFactory, Parser, Subcommand};
+use serde_derive::{Deserialize, Serialize};
+
+use subcommand::kind::Kind;
+
+use crate::error::AppError;
 
 /// The definition of the command line and its arguments
 #[derive(Debug, Parser, Serialize)]
@@ -25,7 +28,7 @@ impl App {
                 // Clap will provide the arguments in priority order (highest to lowest):
                 // command line argument, environment variable, or default value.
                 let (subcommand_name, matches) = sc;
-                let kind =  Kind::from_str(subcommand_name)?;
+                let kind = Kind::from_str(subcommand_name)?;
                 Ok((kind, matches.clone()))
             }
         }
@@ -34,17 +37,17 @@ impl App {
 
 #[derive(Debug, Args, Serialize)]
 struct GlobalOpts {
-    /// config_path is the path to a configuration (.hctoml) file, which defaults to the current directory.
+    /// config_path is the path to a configuration (.toml) file, which defaults to the current directory.
     #[arg(short = 'c', long, global = true, default_value = "config.toml")]
     config_path: std::path::PathBuf,
 }
 
 #[derive(
-    Debug,
-    Subcommand,
-    Deserialize,
-    Serialize,
-    PartialEq, //, EnumString, strum_macros::Display,
+Debug,
+Subcommand,
+Deserialize,
+Serialize,
+PartialEq, //, EnumString, strum_macros::Display,
 )]
 enum Command {
     #[command(about = "The hash container command determines the base64 binary MD5 hash for each blob in a container.", long_about = None)]

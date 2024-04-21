@@ -18,11 +18,13 @@ pub struct ConfigFile {
 }
 
 impl ConfigFile {
+    #[inline]
     pub fn new(config_path: &PathBuf) -> Result<Self, Box<dyn Error>> {
         let config_file_data = Self::parse_config_file_data(config_path)?;
         Ok(Self { config_file_data })
     }
 
+    #[inline]
     pub fn try_get_value_from_table(
         &self,
         table_name: &str,
@@ -33,21 +35,22 @@ impl ConfigFile {
             .get(table_name)
             .and_then(|x| x.get(field_name))
         {
-            None => Err(Box::try_from(FieldNotFound {
-                table_name: Some(table_name.to_string()),
-                field_name: field_name.to_string(),
-            })?),
-            Some(v) => Ok(Some(v)),
+            None => Err(Box::from(FieldNotFound {
+                table_name: Some(table_name.to_owned()),
+                field_name: field_name.to_owned(),
+            })),
+            Some(value) => Ok(Some(value)),
         }
     }
 
+    #[inline]
     pub fn try_get_value(&self, field_name: &str) -> Result<Option<String>, Box<dyn Error>> {
         match self.config_file_data.get(field_name) {
-            None => Err(Box::try_from(FieldNotFound {
+            None => Err(Box::from(FieldNotFound {
                 table_name: None,
-                field_name: field_name.to_string(),
-            })?),
-            Some(v) => Ok(Some(v.to_string())),
+                field_name: field_name.to_owned(),
+            })),
+            Some(value) => Ok(Some(value.to_string())),
         }
     }
 

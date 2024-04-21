@@ -10,6 +10,7 @@ use toml::value::Value;
 // #![deny(warnings)]
 // #![allow(dead_code)]
 use hctoml::ConfigFile;
+use subcommand::error::SubCommandError;
 use subcommand::kind::Kind;
 use subcommand::SubCommand;
 
@@ -41,21 +42,17 @@ pub struct Hadoop {
 }
 
 impl<'a> Config {
-    pub(crate) fn new(
-        kind: Kind,
-        matches: ArgMatches,
-    ) -> Result<Self, Box<dyn Error>>
+    pub(crate) fn new(kind: Kind, matches: ArgMatches) -> Result<Self, Box<dyn Error>>
         where
             Self: Sized,
     {
-
         let subcommand = SubCommand::new(kind, matches)?;
 
         // We want to have hierarchical argument values with the following priorities (highest to lowest):
         // cli > envvar > toml file > defaults.
         // So, we need to determine the matches have default values.  If we have a value in the
         // config file, we will use it.  Otherwise, the default value is retained.
-        let default_ids = subcommand.try_get_default_value_matches(vec!["config_path"])?;
+        let default_ids = subcommand.try_get_default_value_matches(vec!["config_path"].as_ref())?;
 
         // Get the path to the .toml configuration file, which may not exist.
         // The path to the .toml configuration file CANNOT be set in the toml file, only on the
@@ -72,12 +69,7 @@ impl<'a> Config {
 
         // Build a mutable Config from the command line matches.  It will be updated
         // when default values vs hierarchical file values are determined.
-        let config = Self::build_config(
-            &subcommand,
-            &default_ids,
-            &config_file,
-            debug,
-        )?;
+        let config = Self::build_config(&subcommand, &default_ids, &config_file, debug)?;
 
         Ok(config)
     }
@@ -91,7 +83,7 @@ impl<'a> Config {
         // Build a mutable Config from the command line matches.  It will be updated
         // when default values vs hierarchical file values are determined.
 
-        let config = match subcommand.kind {
+        let config = match subcommand.kind() {
             Kind::Container => ConfigBuilder::default()
                 .debug(debug)
                 .container(Self::build_container_config(
@@ -122,6 +114,7 @@ impl<'a> Config {
                     &config_file,
                 )?)
                 .build()?,
+            _ => { return Err(Box::try_from(SubCommandError::Unknown).unwrap()) }
         };
         Ok(config)
     }
@@ -200,7 +193,7 @@ impl<'a> Config {
         if default_values.contains(&id.to_string()) {
             // Fetch the value of the field/id from the toml configuration data.
             let config_value = config_file
-                .try_get_value_from_table(subcommand.kind.to_string().as_str(), id)?
+                .try_get_value_from_table(subcommand.kind().to_string().as_str(), id)?
                 .cloned();
 
             // Fetch the value of the field/id from the subcommand's matches.
