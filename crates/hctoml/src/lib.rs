@@ -13,15 +13,15 @@ use crate::error::ConfigFileError::FieldNotFound;
 mod error;
 
 #[derive(Clone, Debug)]
-pub struct ConfigFile {
-    config_file_data: HashMap<String, Value>,
+pub struct TomlFile {
+    file_data: HashMap<String, Value>,
 }
 
-impl ConfigFile {
+impl TomlFile {
     #[inline]
     pub fn new(config_path: &PathBuf) -> Result<Self, Box<dyn Error>> {
-        let config_file_data = Self::parse_config_file_data(config_path)?;
-        Ok(Self { config_file_data })
+        let file_data = Self::parse_file(config_path)?;
+        Ok(Self { file_data })
     }
 
     #[inline]
@@ -31,7 +31,7 @@ impl ConfigFile {
         field_name: &str,
     ) -> Result<Option<&Value>, Box<dyn Error>> {
         match self
-            .config_file_data
+            .file_data
             .get(table_name)
             .and_then(|x| x.get(field_name))
         {
@@ -45,7 +45,7 @@ impl ConfigFile {
 
     #[inline]
     pub fn try_get_value(&self, field_name: &str) -> Result<Option<String>, Box<dyn Error>> {
-        match self.config_file_data.get(field_name) {
+        match self.file_data.get(field_name) {
             None => Err(Box::from(FieldNotFound {
                 table_name: None,
                 field_name: field_name.to_owned(),
@@ -54,12 +54,12 @@ impl ConfigFile {
         }
     }
 
-    fn parse_config_file_data(
+    fn parse_file(
         config_path: &PathBuf,
     ) -> Result<HashMap<String, Value>, Box<dyn Error>> {
-        let content_string = fs::read_to_string(config_path)?;
+        let content = fs::read_to_string(config_path)?;
         Ok(toml::from_str::<HashMap<String, Value>>(
-            content_string.as_str(),
+            content.as_str(),
         )?)
     }
 }

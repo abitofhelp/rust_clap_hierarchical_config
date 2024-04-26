@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clap will provide the arguments in priority order (highest to lowest):
     // command line argument, environment variable, or default value.
     let hc = Config::new(kind, matches)?;
+
     dbg!(hc);
 
     // let app = App::parse();

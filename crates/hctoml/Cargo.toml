@@ -5,16 +5,16 @@ edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license-file.workspace = true
-name = "toml"
+name = "hctoml"
 readme.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-version = "1.0.0"
+version = "0.1.2"
 
 [lib]
-name = "toml"
+name = "hctoml"
 path = "src/lib.rs"
 
 [dependencies]
-thiserror = "1.0.58"
+thiserror = "1.0.59"
 toml = "0.8.12"

@@ -9,7 +9,7 @@ use toml::value::Value;
 
 // #![deny(warnings)]
 // #![allow(dead_code)]
-use hctoml::ConfigFile;
+use hctoml::TomlFile;
 use subcommand::error::SubCommandError;
 use subcommand::kind::Kind;
 use subcommand::SubCommand;
@@ -77,7 +77,7 @@ impl<'a> Config {
     fn build_config(
         subcommand: &SubCommand,
         default_ids: &Vec<String>,
-        config_file: &ConfigFile,
+        config_file: &TomlFile,
         debug: Option<bool>,
     ) -> Result<Config, Box<dyn Error>> {
         // Build a mutable Config from the command line matches.  It will be updated
@@ -119,7 +119,7 @@ impl<'a> Config {
         Ok(config)
     }
 
-    fn parse_config_file(subcommand: &SubCommand) -> Result<ConfigFile, Box<dyn Error>> {
+    fn parse_config_file(subcommand: &SubCommand) -> Result<TomlFile, Box<dyn Error>> {
         // Get the path to the .toml configuration file, which may not exist.
         // The path to the .toml configuration file CANNOT be set in the toml file, only on the
         // command line.
@@ -129,7 +129,7 @@ impl<'a> Config {
 
         // Parse the .toml configuration file, so we can determine values for substitution in
         // the command line matches.
-        let config_file = ConfigFile::new(&config_path)?;
+        let config_file = TomlFile::new(&config_path)?;
 
         Ok(config_file)
     }
@@ -137,7 +137,7 @@ impl<'a> Config {
     fn build_hadoop_config(
         subcommand: &SubCommand,
         default_ids: &Vec<String>,
-        config_file: &ConfigFile,
+        config_file: &TomlFile,
     ) -> Result<Hadoop, Box<dyn Error>> {
         // Initialize an empty config instance.
         let mut config = Hadoop::default();
@@ -152,7 +152,7 @@ impl<'a> Config {
     fn build_directory_config(
         subcommand: &SubCommand,
         default_ids: &Vec<String>,
-        config_file: &ConfigFile,
+        config_file: &TomlFile,
     ) -> Result<Directory, Box<dyn Error>> {
         // Initialize an empty config instance.
         let mut config = Directory::default();
@@ -168,7 +168,7 @@ impl<'a> Config {
     fn build_container_config(
         subcommand: &SubCommand,
         default_ids: &Vec<String>,
-        config_file: &ConfigFile,
+        config_file: &TomlFile,
     ) -> Result<Container, Box<dyn Error>> {
         // Initialize an empty config instance.
         let mut config = Container::default();
@@ -187,7 +187,7 @@ impl<'a> Config {
     fn resolve_arg_value<T: Clone + Send + Sync + 'static + serde::Serialize>(
         id: &str,
         default_values: &Vec<String>,
-        config_file: &ConfigFile,
+        config_file: &TomlFile,
         subcommand: &SubCommand,
     ) -> Result<Option<Value>, Box<dyn Error>> {
         if default_values.contains(&id.to_string()) {

@@ -1,3 +1,6 @@
+#![deny(warnings)]
+#![allow(dead_code)]
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -9,7 +12,7 @@ pub enum ConfigFileError {
     },
 
     #[error("the toml configuration file '{path:?}' was not found")]
-    NotFound { path: String },
+    FileNotFound { path: String },
 
     #[error("unknown toml configuration file error")]
     Unknown,
