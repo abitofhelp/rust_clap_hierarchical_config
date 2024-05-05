@@ -1,3 +1,6 @@
+#![deny(warnings)]
+#![allow(dead_code)]
+
 use std::error::Error;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -7,8 +10,6 @@ use derive_builder::Builder;
 use serde_derive::Deserialize;
 use toml::value::Value;
 
-// #![deny(warnings)]
-// #![allow(dead_code)]
 use hctoml::TomlFile;
 use subcommand::error::SubCommandError;
 use subcommand::kind::Kind;
@@ -41,7 +42,7 @@ pub struct Hadoop {
     pub path: Option<PathBuf>,
 }
 
-impl<'a> Config {
+impl Config {
     pub(crate) fn new(kind: Kind, matches: ArgMatches) -> Result<Self, Box<dyn Error>>
         where
             Self: Sized,
@@ -76,7 +77,7 @@ impl<'a> Config {
 
     fn build_config(
         subcommand: &SubCommand,
-        default_ids: &Vec<String>,
+        default_ids: &[String],
         config_file: &TomlFile,
         debug: Option<bool>,
     ) -> Result<Config, Box<dyn Error>> {
@@ -87,9 +88,9 @@ impl<'a> Config {
             Kind::Container => ConfigBuilder::default()
                 .debug(debug)
                 .container(Self::build_container_config(
-                    &subcommand,
-                    &default_ids,
-                    &config_file,
+                    subcommand,
+                    default_ids,
+                    config_file,
                 )?)
                 .directory(None)
                 .hadoop(None)
@@ -98,9 +99,9 @@ impl<'a> Config {
                 .debug(debug)
                 .container(None)
                 .directory(Self::build_directory_config(
-                    &subcommand,
-                    &default_ids,
-                    &config_file,
+                    subcommand,
+                    default_ids,
+                    config_file,
                 )?)
                 .hadoop(None)
                 .build()?,
@@ -109,12 +110,12 @@ impl<'a> Config {
                 .container(None)
                 .directory(None)
                 .hadoop(Self::build_hadoop_config(
-                    &subcommand,
-                    &default_ids,
-                    &config_file,
+                    subcommand,
+                    default_ids,
+                    config_file,
                 )?)
                 .build()?,
-            _ => { return Err(Box::try_from(SubCommandError::Unknown).unwrap()) }
+            _ => return Err(Box::from(SubCommandError::Unknown)),
         };
         Ok(config)
     }
@@ -136,57 +137,45 @@ impl<'a> Config {
 
     fn build_hadoop_config(
         subcommand: &SubCommand,
-        default_ids: &Vec<String>,
+        default_ids: &[String],
         config_file: &TomlFile,
     ) -> Result<Hadoop, Box<dyn Error>> {
-        // Initialize an empty config instance.
-        let mut config = Hadoop::default();
-
         // Load the matches into the Config instance.
-        config.path =
-            Self::resolve_arg_value::<PathBuf>("path", &default_ids, &config_file, &subcommand)?
-                .map(|x| PathBuf::from(x.to_string()));
-        Ok(config)
+        Ok(Hadoop {
+            path: Self::resolve_arg_value::<PathBuf>("path", default_ids, config_file, subcommand)?
+                .map(|x| PathBuf::from(x.to_string())),
+        })
     }
 
     fn build_directory_config(
         subcommand: &SubCommand,
-        default_ids: &Vec<String>,
+        default_ids: &[String],
         config_file: &TomlFile,
     ) -> Result<Directory, Box<dyn Error>> {
-        // Initialize an empty config instance.
-        let mut config = Directory::default();
-
         // Load the matches into the Config instance.
-        config.path =
-            Self::resolve_arg_value::<PathBuf>("path", &default_ids, &config_file, &subcommand)?
-                .map(|x| PathBuf::from(x.to_string()));
-
-        Ok(config)
+        Ok(Directory {
+            path: Self::resolve_arg_value::<PathBuf>("path", default_ids, config_file, subcommand)?
+                .map(|x| PathBuf::from(x.to_string())),
+        })
     }
 
     fn build_container_config(
         subcommand: &SubCommand,
-        default_ids: &Vec<String>,
+        default_ids: &[String],
         config_file: &TomlFile,
     ) -> Result<Container, Box<dyn Error>> {
-        // Initialize an empty config instance.
-        let mut config = Container::default();
-
         // Update any values that Clap used from default sources,
         // if the argument exists in the toml config file.
         // Load the matches into the Config instance.
-
-        config.name =
-            Self::resolve_arg_value::<String>("name", &default_ids, &config_file, &subcommand)?
-                .map(|x| x.to_string());
-
-        Ok(config)
+        Ok(Container {
+            name: Self::resolve_arg_value::<String>("name", default_ids, config_file, subcommand)?
+                .map(|x| x.to_string()),
+        })
     }
 
     fn resolve_arg_value<T: Clone + Send + Sync + 'static + serde::Serialize>(
         id: &str,
-        default_values: &Vec<String>,
+        default_values: &[String],
         config_file: &TomlFile,
         subcommand: &SubCommand,
     ) -> Result<Option<Value>, Box<dyn Error>> {

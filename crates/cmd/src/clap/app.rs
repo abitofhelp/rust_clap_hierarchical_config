@@ -22,7 +22,7 @@ pub struct App {
 impl App {
     pub fn subcommand() -> Result<(Kind, ArgMatches), Box<dyn Error>> {
         match App::command().get_matches().subcommand() {
-            None => Err(Box::try_from(AppError::SubCommandNotPresent)?),
+            None => Err(Box::from(AppError::SubCommandNotPresent)),
             Some(sc) => {
                 // Get the command line matches for the subcommand that was used.
                 // Clap will provide the arguments in priority order (highest to lowest):
